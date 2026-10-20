@@ -23,7 +23,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      # npm install (not ci): the lockfile is generated behind a registry mirror that lacks some optional platform deps
+      - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run build
       - uses: actions/configure-pages@v5
