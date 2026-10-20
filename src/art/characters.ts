@@ -76,6 +76,8 @@ function baseAnims(style: 'hero' | 'thug' | 'heavy'): Record<string, Pose[]> {
     withP(g, { lF: [94, 2], lB: [-10, 4], lean: -16, aF: [-10, 60], aB: [40, 90], face: 'grit' }),
     withP(g, { lF: [94, 2], lB: [-10, 4], lean: -14, aF: [-10, 60], aB: [40, 90], face: 'grit' }),
     withP(g, { lF: [60, 95], lean: 0 }),
+    // 4: held at full extension for the long roundhouse
+    withP(g, { lF: [98, -4], lB: [-14, 4], lean: -22, aF: [-25, 50], aB: [55, 90], face: 'grit' }),
   ];
   A.uppercut = [
     withP(g, { lean: 22, aF: [10, 60], lF: [30, 50], lB: [-20, 40] }),
@@ -91,6 +93,8 @@ function baseAnims(style: 'hero' | 'thug' | 'heavy'): Record<string, Pose[]> {
     { lean: 4, lF: [45, 85], lB: [0, 80], aF: [60, 80], aB: [30, 90], hand: 'fist', plant: false },
     { lean: 2, lF: [20, 30], lB: [-10, 25], aF: [80, 40], aB: [50, 60], hand: 'fist', plant: false },
   ];
+  A.land = [{ lean: 20, lF: [42, 76], lB: [-16, 64], aF: [30, 60], aB: [10, 70], hand: 'fist' }];
+  A.jumpknee = [{ lean: 8, lF: [82, 135], lB: [-12, 40], aF: [60, 80], aB: [-25, 60], hand: 'fist', plant: false, face: 'grit' }];
   A.jumpkick = [
     { lean: -6, lF: [60, 100], lB: [-10, 90], aF: [60, 80], aB: [-30, 60], hand: 'fist', plant: false },
     { lean: -14, lF: [98, 0], lB: [-15, 100], aF: [-20, 50], aB: [60, 80], hand: 'fist', plant: false, face: 'grit' },

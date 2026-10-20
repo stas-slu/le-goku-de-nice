@@ -121,7 +121,17 @@ function brawl(w: World, f: Fighter, ai: AiState, speed: number, moves: string[]
         return;
       }
       const behind = -h.facing;
-      const slotX = h.x + behind * 70;
+      const want = h.x + behind * 70;
+      const slotX = clamp(want, w.camX + 24, w.camX + VIEW_W - 24);
+      if (Math.abs(slotX - want) > 12) {
+        // the hero has his back to the wall: no way round, fight from the front
+        const side = dx > 0 ? -1 : 1;
+        if (walkTo(f, h.x + side * 26, h.y, speed, h.x) || (Math.abs(dx) < 30 && aligned)) {
+          f.facing = dx > 0 ? 1 : -1;
+          attack(w, f, ai, ['punch2', 'sweep', 'punch']);
+        }
+        return;
+      }
       if (Math.sign(f.x - h.x) !== behind || Math.abs(f.x - h.x) < 40) {
         walkTo(f, slotX, h.y + (Math.abs(f.y - h.y) < 14 ? (f.y < h.y ? -18 : 18) : 0), speed * 1.25, h.x);
         if (Math.abs(dx) < 26 && aligned) attack(w, f, ai, ['punch2', 'sweep', 'punch']);

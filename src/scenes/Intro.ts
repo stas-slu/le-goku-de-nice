@@ -5,6 +5,7 @@ import { t } from '../i18n/strings';
 import { sfx } from '../audio/audio';
 import { TITLE_SONG, music } from '../audio/music';
 import { FRAME_H, FRAME_W, ORIGIN_X, ORIGIN_Y } from '../art/rig';
+import { measure } from '../art/font';
 
 const LINES = 9;
 const NEWS_LINES = 4; // the France-wide exposition plays over the burning avenue
@@ -15,7 +16,8 @@ export class IntroScene extends Phaser.Scene {
   private controls!: Controls;
   private line = 0;
   private chars = 0;
-  private text!: Phaser.GameObjects.BitmapText;
+  /** One centred BitmapText per wrapped line (Phaser's own centre-align lands on half pixels). */
+  private rows: Phaser.GameObjects.BitmapText[] = [];
   private hero!: Phaser.GameObjects.Sprite;
   private news!: Phaser.GameObjects.Container;
   private shop!: Phaser.GameObjects.Container;
@@ -56,9 +58,31 @@ export class IntroScene extends Phaser.Scene {
 
     this.add.rectangle(0, 0, VIEW_W, 26, 0x000000).setOrigin(0);
     this.add.rectangle(0, VIEW_H - 42, VIEW_W, 42, 0x000000).setOrigin(0);
-    this.text = this.add.bitmapText(VIEW_W / 2, VIEW_H - 36, 'font', '').setOrigin(0.5, 0).setMaxWidth(VIEW_W - 32).setCenterAlign();
+    this.rows = [0, 1].map((k) => this.add.bitmapText(VIEW_W / 2, VIEW_H - 36 + k * 13, 'font', '').setOrigin(0, 0));
     this.add.bitmapText(VIEW_W - 4, 8, 'font', t('skip')).setOrigin(1, 0).setAlpha(0.5);
     this.input.on('pointerdown', () => this.advance());
+  }
+
+  /** Word-wrap the full line once, then reveal it character by character. */
+  private showTyped(full: string, n: number): void {
+    const lines: string[] = [];
+    let cur = '';
+    for (const word of full.split(' ')) {
+      const next = cur ? `${cur} ${word}` : word;
+      if (measure(next) > VIEW_W - 32 && cur) {
+        lines.push(cur);
+        cur = word;
+      } else cur = next;
+    }
+    lines.push(cur);
+    let left = n;
+    this.rows.forEach((row, k) => {
+      const l = lines[k] ?? '';
+      // anchor at the finished line's left edge so typing doesn't shift the text
+      row.setX(Math.round(VIEW_W / 2 - measure(l) / 2));
+      row.setText(l.slice(0, Math.max(0, left)));
+      left -= l.length + 1;
+    });
   }
 
   private current(): string {
@@ -105,7 +129,7 @@ export class IntroScene extends Phaser.Scene {
         if (this.chars % 3 === 0 && L[this.chars - 1] !== ' ') sfx('ui');
       }
     } else if (++this.hold > HOLD) this.next();
-    if (this.line < LINES) this.text.setText(this.current().slice(0, this.chars));
+    if (this.line < LINES) this.showTyped(this.current(), this.chars);
 
     // the clerk walks to the doorway, turns, and crosses his arms
     const shopLine = this.line - NEWS_LINES;

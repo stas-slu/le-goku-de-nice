@@ -136,14 +136,17 @@ export interface FontSheet {
 
 /** Bake the font into a sheet: fill colour + 1px outline, one glyph per cell. */
 export function bakeFont(fill: number, shade: number, outline = OUTLINE): FontSheet {
-  const cellW = 9;
+  // Cells are padded on both axes: with nearest sampling, text that lands on
+  // a half pixel would otherwise pick up a row/column of the neighbouring glyph.
+  const cellW = 10;
+  const rowH = CELL_H + 2;
   const perRow = 16;
   const rows = Math.ceil(GLYPHS.length / perRow);
-  const pc = new PixelCanvas(perRow * cellW, rows * CELL_H);
+  const pc = new PixelCanvas(perRow * cellW, rows * rowH);
   const cells: FontSheet['cells'] = [];
   GLYPHS.forEach((g, i) => {
-    const cx = (i % perRow) * cellW;
-    const cy = Math.floor(i / perRow) * CELL_H;
+    const cx = (i % perRow) * cellW + 1;
+    const cy = Math.floor(i / perRow) * rowH + 1;
     const tmp = new PixelCanvas(g.w + 2, CELL_H);
     g.rows.forEach((row, y) => {
       for (let x = 0; x < row.length; x++) {

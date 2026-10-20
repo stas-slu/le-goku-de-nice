@@ -36,6 +36,24 @@ function registerFont(scene: Phaser.Scene, key: string, fill: number, shade: num
 
 const nextFrame = () => new Promise<void>((r) => setTimeout(r, 0));
 
+/**
+ * Centred bitmap text with an odd pixel width lands on a half pixel, and
+ * nearest sampling then drops 1px strokes (T, +, V lose their stems). Snap
+ * every BitmapText's display origin to whole pixels.
+ */
+function snapBitmapTextOrigins(): void {
+  type WithOrigin = { _displayOriginX: number; _displayOriginY: number };
+  const proto = Phaser.GameObjects.BitmapText.prototype as unknown as { updateDisplayOrigin: (this: WithOrigin) => unknown };
+  const original = proto.updateDisplayOrigin;
+  proto.updateDisplayOrigin = function (this: WithOrigin) {
+    const r = original.call(this);
+    this._displayOriginX = Math.round(this._displayOriginX);
+    this._displayOriginY = Math.round(this._displayOriginY);
+    return r;
+  };
+}
+snapBitmapTextOrigins();
+
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('boot');

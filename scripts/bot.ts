@@ -11,7 +11,7 @@ function botIntent(w: World, tick: number): Intent {
     // walk right through scrolling sections
     return { ...NO_INTENT, mx: w.director.active ? 0 : 1 };
   }
-  if (w.resolve >= 100 && foes.length >= 3) return { ...NO_INTENT, super: true };
+  if (w.resolve >= 100 && foes.length >= 3) return { ...NO_INTENT, special: true };
   const prio = (f: Fighter) => (f.state === 'steal' || f.state === 'carry' ? -200 : 0) + Math.abs(f.x - h.x) + Math.abs(f.y - h.y) * 2;
   const t = foes.sort((a, b) => prio(a) - prio(b))[0];
   const side = t.x > h.x ? -1 : 1;

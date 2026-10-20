@@ -37,8 +37,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - It pushes `GameEvent`s into `world.events`. The scene drains them each tick for SFX and FX.
 - `combat.ts`: hit detection. An attack box must overlap the body on x and z, and `|Δy| <= depth`. The depth tolerance is deliberately generous.
 - `defs.ts`: all frame data (`MOVES`: steps/active/cancel/lunge/armor), enemy stats and hero constants. Tuning happens here.
-  - Combos: `jab1 → jab2 → cross → next: 'finisher'`. `World.pickFinisher` branches on the held direction: neutral kick, toward = charge, up = uppercut launcher, down = sweep.
-  - Other moves: run + A dropkick, air + down + A dive elbow, → + D Rafale (multi-hit via `rehit`, auto-chains via `then`), grab + ↑ + A headbutt (`grabOnly`).
+  - Combo string is fixed: `jab1 → jab2 → cross → kick` (long 5-frame roundhouse).
+  - Run + A = charge. Jump attacks are picked in `controlHero`: ↓ = dive elbow, run-jump = dropkick, forward jump = jumpkick, vertical = jumpknee. The hero jumps with lighter gravity (`HERO.jumpGravity`).
+  - A + S within `CHORD` ticks = back elbow, so single A/S presses wait a few ticks before acting.
+  - Grab: A, A = knees, 3rd A = headbutt (`grabOnly`), direction + A = throw, S = vault behind.
+  - D = spin, → + D = Rafale (multi-hit via `rehit`, auto-chains via `then`), D with full Aura = super.
   - Impact: heavy hero knockdowns emit `impact` (ring, streaks, dark→white flash, crunch). Victims jitter by `Fighter.shake` while frozen in hitstop.
 - `ai.ts`: one mode machine per enemy archetype.
   - The attack-token pool (`world.maxTokens`, set per wave) caps how many enemies can attack at once.
@@ -66,7 +69,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 `src/audio/` is all WebAudio synthesis: SFX in `audio.ts`, and a 16th-note tracker plus three songs in `music.ts`. Audio must be unlocked from a user gesture (`unlockAudio`).
 
 `src/input/controls.ts` merges keyboard, gamepad and the touch pad into one `Intent` per tick.
-- Keyboard: arrows move; A attack, S jump, D special, W super (AZERTY: Q and Z for the same physical keys). Space jumps, Esc pauses.
+- Keyboard: arrows move; A attack, S jump, D special (AZERTY: Q = A). Space jumps, Esc pauses. Only three action buttons, on purpose (SoR2 / Golden Axe).
 - Key presses are latched from Phaser key `down` events, because Phaser clears `_justDown` on key-up and quick taps would be lost between ticks.
 
 `src/i18n/strings.ts` holds the FR/EN tables. `tests/i18n.test.ts` enforces that:
@@ -74,6 +77,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - every character is drawable by the bitmap font
 
 The font is uppercase-only. Add a glyph to `font.ts` before using a new symbol.
+
+Pixel-crisp text: `Boot.snapBitmapTextOrigins` rounds every BitmapText display origin, because odd-width centred text otherwise lands on a half pixel and loses 1px strokes. Avoid Phaser's multi-line `setCenterAlign` (it offsets lines by half pixels); wrap manually like `Intro.showTyped`.
 
 ## Content rules (decided with the user)
 

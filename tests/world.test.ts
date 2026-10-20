@@ -91,7 +91,7 @@ describe('hero combat', () => {
     expect(w.hero.recover).toBe(0);
   });
 
-  it('walking into an enemy grabs, knees twice then throws', () => {
+  it('walking into an enemy grabs, knees twice, then direction + attack throws', () => {
     const w = arena();
     const e = placeEnemy(w, 'capuche', 168, 180);
     e.hp = e.maxHp = 999;
@@ -103,7 +103,7 @@ describe('hero combat', () => {
       run(w, 24);
       expect(w.hero.state).toBe('grab');
     }
-    w.step(press({ attack: true }));
+    w.step(press({ attack: true, mx: 1 }));
     expect(e.state).toBe('thrown');
   });
 });
@@ -125,6 +125,25 @@ describe('crowd control', () => {
     }
     expect(peak).toBeGreaterThan(0);
     expect(peak).toBeLessThanOrEqual(2);
+  });
+});
+
+describe('boss AI', () => {
+  it('the Kickeur still attacks when the hero has his back to the wall', () => {
+    const w = arena();
+    w.hero.x = 14; // left screen edge, facing right: "behind" is off-screen
+    w.hero.facing = 1;
+    w.hero.hp = w.hero.maxHp = 1e9;
+    const k = w.spawnEnemy('kickeur', 'R', 180);
+    k.x = 90;
+    k.entered = true;
+    let attacked = false;
+    for (let i = 0; i < 900 && !attacked; i++) {
+      w.step(NO_INTENT);
+      w.hero.facing = 1;
+      if (k.state === 'attack') attacked = true;
+    }
+    expect(attacked).toBe(true);
   });
 });
 
@@ -206,7 +225,7 @@ describe('director', () => {
     const es = [placeEnemy(w, 'capuche', 220, 180), placeEnemy(w, 'capuche', 260, 170), placeEnemy(w, 'capuche', 300, 190)];
     w.resolve = 100;
     w.hero.facing = 1;
-    w.step(press({ super: true }));
+    w.step(press({ special: true }));
     expect(w.hero.state).toBe('super');
     run(w, 200);
     for (const e of es) expect(e.hp).toBeLessThan(e.maxHp);

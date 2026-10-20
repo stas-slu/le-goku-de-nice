@@ -11,7 +11,9 @@ import { Director, StageDef } from './stage';
 import { rng } from './rng';
 
 const BUFFER = 9;
-type BufKey = 'attack' | 'jump' | 'special' | 'super';
+type BufKey = 'attack' | 'jump' | 'special';
+/** Attack + jump pressed this close together = back attack (SoR2 / Golden Axe). */
+const CHORD = 4;
 
 export class World {
   tick = 0;
@@ -44,7 +46,10 @@ export class World {
   boss: Fighter | null = null;
   rand: () => number;
   private nextId = 1;
-  private buf = { attack: 0, jump: 0, special: 0, super: 0 };
+  private buf = { attack: 0, jump: 0, special: 0 };
+  private pressAt = { attack: -99, jump: -99 };
+  /** The current jump started from a run (enables the flying dropkick). */
+  private runJump = false;
   /** Most recent input, used to branch combo finishers on the held direction. */
   lastIntent: Intent = NO_INTENT;
   private deadT = 0;
@@ -139,7 +144,8 @@ export class World {
     b.attack = i.attack ? BUFFER : Math.max(0, b.attack - 1);
     b.jump = i.jump ? BUFFER : Math.max(0, b.jump - 1);
     b.special = i.special ? BUFFER : Math.max(0, b.special - 1);
-    b.super = i.super ? BUFFER : Math.max(0, b.super - 1);
+    if (i.attack) this.pressAt.attack = this.tick;
+    if (i.jump) this.pressAt.jump = this.tick;
   }
 
   private consume(k: BufKey): boolean {
@@ -267,15 +273,6 @@ export class World {
     if (m.steps[0][0] === 'flykick') this.emit({ type: 'warn', x: f.x, y: f.y, side: f.facing });
   }
 
-  /** 4th hit of the chain: neutral kick, toward = shoulder charge, up = launcher, down = sweep. */
-  private pickFinisher(f: Fighter): string {
-    const i = this.lastIntent;
-    if (i.my < 0) return 'uppercut';
-    if (i.my > 0) return 'sweepkick';
-    if (i.mx === f.facing) return 'charge';
-    return 'kick';
-  }
-
   private moveLength(m: MoveDef): number {
     return m.steps.reduce((a, s) => a + s[2], 0);
   }
@@ -305,7 +302,7 @@ export class World {
 
     // combo chaining for the hero
     if (f.team === 'hero' && m.next && m.cancel !== undefined && t >= m.cancel && this.consume('attack')) {
-      f.queued = m.next === 'finisher' ? this.pickFinisher(f) : m.next;
+      f.queued = m.next;
     }
     if (f.queued && f.hitIds.size >= 0 && t >= (m.cancel ?? 999) + 1) {
       const next = f.queued;
@@ -315,7 +312,8 @@ export class World {
     }
     if (m.air) {
       if (f.z <= 0 && t > 2) {
-        this.toIdle(f);
+        if (f.team === 'hero') this.setState(f, 'land');
+        else this.toIdle(f);
         this.emit({ type: 'land', x: f.x, y: f.y, big: false });
       }
       return;
@@ -345,7 +343,8 @@ export class World {
     const airborne = f.z > 0 || f.vz !== 0;
     if (airborne) {
       f.z += f.vz;
-      f.vz -= GRAVITY;
+      const floaty = f.team === 'hero' && (f.state === 'jump' || (f.state === 'attack' && f.move?.air));
+      f.vz -= floaty ? HERO.jumpGravity : GRAVITY;
       if (f.z <= 0) {
         f.z = 0;
         this.land(f);
@@ -412,7 +411,7 @@ export class World {
     }
     f.vz = 0;
     if (f.state === 'jump') {
-      this.toIdle(f);
+      this.setState(f, 'land');
       this.emit({ type: 'land', x: f.x, y: f.y, big: false });
     }
   }
@@ -467,43 +466,62 @@ export class World {
       this.controlGrab(h, i);
       return;
     }
+    if (st === 'land') {
+      h.anim = 'land';
+      h.frame = 0;
+      h.vx *= 0.5;
+      h.vy = 0;
+      if (h.t >= 5) this.toIdle(h);
+      return;
+    }
     if (st === 'jump') {
       h.anim = 'jump';
       h.frame = h.vz > 1 ? 1 : 2;
       if (this.consume('attack')) {
-        this.startMove(h, i.my > 0 ? 'diveelbow' : 'jumpkick');
+        // Golden Axe / SoR2 air attacks: ↓ = dive, from a run = dropkick,
+        // forward jump = flying side kick, straight up = knee
+        const id = i.my > 0 ? 'diveelbow' : this.runJump ? 'dropkick' : Math.abs(h.vx) > 0.5 ? 'jumpkick' : 'jumpknee';
+        this.startMove(h, id);
       }
       return;
     }
 
     // grounded, actionable: idle / walk / run / cross
-    if (this.consume('super') && this.resolve >= 100) {
-      this.startSuper(h);
-      return;
-    }
     if (this.consume('special')) {
+      // full Aura turns the special into the super (Golden Axe "magic")
+      if (this.resolve >= 100) {
+        this.startSuper(h);
+        return;
+      }
       if (i.mx && i.mx !== h.facing) h.facing = i.mx > 0 ? 1 : -1;
       this.startMove(h, i.mx === h.facing ? 'rafale' : 'special');
       return;
     }
-    if (this.consume('jump')) {
+    // attack + jump together = back elbow
+    const b = this.buf;
+    if (b.attack > 0 && b.jump > 0 && Math.abs(this.pressAt.attack - this.pressAt.jump) <= CHORD) {
+      b.attack = b.jump = 0;
+      this.startMove(h, 'elbow');
+      return;
+    }
+    // single presses wait a few ticks so the chord can register
+    const ripe = (k: 'attack' | 'jump') => b[k] > 0 && this.tick - this.pressAt[k] >= CHORD - 1;
+    if (ripe('jump')) {
+      b.jump = 0;
+      this.runJump = st === 'run';
       this.setState(h, 'jump');
       h.vz = HERO.jumpVz;
       h.z = 0.5;
-      h.vx = i.mx * (i.run ? HERO.runX * 0.8 : HERO.walkX * 1.1);
-      h.vy = i.my * HERO.walkY * 0.6;
+      h.vx = i.mx * (this.runJump ? HERO.runJumpX : HERO.jumpX);
+      h.vy = i.my * HERO.walkY * 0.7;
       if (i.mx) h.facing = i.mx > 0 ? 1 : -1;
       this.emit({ type: 'jump' });
       return;
     }
-    if (this.consume('attack')) {
+    if (ripe('attack')) {
+      b.attack = 0;
       if (st === 'run') {
-        this.startMove(h, 'dropkick');
-        return;
-      }
-      const behind = this.nearestEnemy(h, -h.facing, 34, 8);
-      if (behind && i.mx === -h.facing) {
-        this.startMove(h, 'elbow');
+        this.startMove(h, 'charge');
         return;
       }
       if (i.mx) h.facing = i.mx > 0 ? 1 : -1;
@@ -594,27 +612,40 @@ export class World {
       this.toIdle(h);
       return;
     }
-    h.anim = 'grab';
-    h.frame = 0;
+    h.anim = h.z > 0 ? 'jump' : 'grab';
+    h.frame = h.z > 0 ? 1 : 0;
     e.x = h.x + h.facing * 15;
     e.y = h.y + 0.5;
     e.z = 0;
-    if (h.t > 100 || this.consume('jump')) {
+    if (h.t > 120) {
       this.setState(e, 'hurt');
       e.stun = 12;
       e.vx = h.facing * 1.5;
       this.toIdle(h);
       return;
     }
+    if (h.z > 0) return;
+    if (this.consume('jump')) {
+      // SoR2 vault: hop over to the enemy's back, still holding on
+      h.x = e.x + (e.x - h.x);
+      h.facing = -h.facing as 1 | -1;
+      e.facing = h.facing;
+      h.vz = 2.8;
+      h.z = 0.5;
+      h.t = Math.max(0, h.t - 40);
+      this.emit({ type: 'jump' });
+      return;
+    }
     if (this.consume('attack')) {
-      if ((i.mx && i.mx === -h.facing) || h.grabHits >= 2) {
-        this.doThrow(h, e, (i.mx && i.mx === -h.facing ? -h.facing : h.facing) as 1 | -1);
+      // direction + attack throws that way; otherwise knee, knee, headbutt
+      if (i.mx) {
+        this.doThrow(h, e, (i.mx > 0 ? 1 : -1) as 1 | -1);
         return;
       }
+      const id = h.grabHits >= 2 ? 'headbutt' : 'knee';
       h.grabHits++;
-      // knee (or the up+attack headbutt): attacks that only target the held enemy
       const keep = h.grabOther;
-      this.startMove(h, i.my < 0 ? 'headbutt' : 'knee');
+      this.startMove(h, id);
       h.grabOther = keep;
       e.t = 0;
     }

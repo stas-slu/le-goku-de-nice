@@ -5,7 +5,7 @@ export type Team = 'hero' | 'enemy';
 export type FState =
   | 'idle' | 'walk' | 'run' | 'attack' | 'jump' | 'hurt' | 'fall' | 'down' | 'getup'
   | 'grab' | 'grabbed' | 'thrown' | 'dead' | 'super' | 'steal' | 'carry' | 'ride'
-  | 'taunt' | 'pickup' | 'cross' | 'respawn';
+  | 'taunt' | 'pickup' | 'cross' | 'respawn' | 'land';
 
 export interface AiState {
   mode: string;
@@ -147,7 +147,6 @@ export interface Intent {
   attack: boolean;
   jump: boolean;
   special: boolean;
-  super: boolean;
 }
 
-export const NO_INTENT: Intent = { mx: 0, my: 0, run: false, attack: false, jump: false, special: false, super: false };
+export const NO_INTENT: Intent = { mx: 0, my: 0, run: false, attack: false, jump: false, special: false };

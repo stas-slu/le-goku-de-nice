@@ -15,20 +15,23 @@ A parody fan game inspired by the "Goku de Nice" meme. It's built in the style o
   - Some looters ignore you and go straight for the stock.
   - Standing in the doorway blocks them.
   - Hit a looter who is carrying loot and he drops it.
-- **Combos with weight.** Every press of **A** continues the chain:
-  - Jab → jab → cross, then a finisher that depends on the arrow you hold: roundhouse, shoulder charge, uppercut launcher or low sweep.
+- **Classic three-button brawling,** in the style of Streets of Rage 2 and Golden Axe:
+  - Mash **A** for the jab, jab, hook, roundhouse string.
+  - **Run + A:** shoulder charge.
+  - **Running jump + A:** flying dropkick.
+  - **Jump + A:** flying side kick (or a jump knee straight up). Add **↓** for a diving elbow.
+  - **A + S together:** back elbow.
+  - **Grab:** walk into an enemy, then knee, knee, *coup de boule*. **← →** throws, **S** vaults over their back.
+  - **D:** spin (costs a little health; landing hits wins it back). **→ + D:** an 8-hit punch flurry.
+- **Hits with weight:**
   - Hits freeze the action for a moment and the enemy trembles.
   - Finishers add shockwaves, speed lines and screen shake.
   - Enemies bounce off the edge of the screen.
-- **More moves:**
-  - dropkick (attack while running)
-  - diving elbow (down + attack in the air)
-  - an 8-hit punch flurry (toward + special)
-  - grab, then knees, throw or *coup de boule* (headbutt)
+  - Slow motion on the last knockout of a wave.
 - **The meme mechanics:**
   - **Glasses:** a heavy hit knocks your glasses off and the screen goes blurry until you pick them up.
   - **"Back to my post!":** get knocked down, get up and return to the door for a bonus.
-  - **The standee:** fill the Aura meter and the cardboard anime standee comes alive to fire **KAMÉ-NICE-HA!**
+  - **The standee:** fill the Aura meter and press **D**: the cardboard anime standee comes alive to fire **KAMÉ-NICE-HA!**
 - **Two stages:**
   - **The shop** on avenue Jean-Médecin.
   - **The avenue:** past the basilica and a stalled tram, ending at Place Masséna, where you protect the fountain under the colour-changing statues.
@@ -39,11 +42,11 @@ A parody fan game inspired by the "Goku de Nice" meme. It's built in the style o
 
 | Action | Keyboard | Gamepad |
 |---|---|---|
-| Move | Arrows (double-tap to run) | Stick / D-pad |
+| Move | Arrows (→ → to run) | Stick / D-pad |
 | Attack | **A** (AZERTY: Q) | X |
 | Jump | **S** / Space | A |
-| Special (spin; → + D = flurry) | **D** | B / LB |
-| Super (full Aura) | **W** (AZERTY: Z) | Y / RB |
+| Special (→ + D = flurry; full Aura = super) | **D** | B / Y / bumpers |
+| Back attack | **A + S** together | |
 | Grab | walk into an enemy | |
 | Pause | Esc | Start |
 

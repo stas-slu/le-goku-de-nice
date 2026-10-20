@@ -71,35 +71,35 @@ export const MOVES: Record<string, MoveDef> = {
   },
   cross: {
     steps: [['cross', 0, 4], ['cross', 1, 6], ['cross', 2, 8]],
-    active: [4, 9], cancel: 8, next: 'finisher', lunge: 0.8, lungeAt: [3, 8], sfx: 'light',
+    active: [4, 9], cancel: 8, next: 'kick', lunge: 0.8, lungeAt: [3, 8], sfx: 'light',
     hit: { box: { x: 4, z: 28, w: 26, h: 16 }, depth: D, damage: 6, stun: 24, stop: 6, push: 0.9 },
   },
-  // ---- finishers (picked by the direction held on the 4th press) ----
+  // ---- combo finisher: a long roundhouse (chamber, extend, hold, hold, retract) ----
   kick: {
-    steps: [['kick', 0, 5], ['kick', 1, 4], ['kick', 2, 6], ['kick', 3, 9]],
-    active: [5, 13], lunge: 1.2, lungeAt: [4, 9], sfx: 'heavy',
-    hit: { box: { x: 4, z: 14, w: 30, h: 20 }, depth: D, damage: 10, stun: 30, stop: 12, push: 2.8, launch: 3.2, knockdown: true, heavy: true },
+    steps: [['kick', 0, 5], ['kick', 1, 4], ['kick', 2, 5], ['kick', 4, 6], ['kick', 3, 10]],
+    active: [5, 20], lunge: 1.8, lungeAt: [3, 14], sfx: 'heavy',
+    hit: { box: { x: 2, z: 14, w: 38, h: 22 }, depth: D, damage: 10, stun: 30, stop: 12, push: 3, launch: 3.4, knockdown: true, heavy: true },
   },
+  // run + attack: Golden Axe-style dash tackle
   charge: {
-    steps: [['charge', 0, 6], ['charge', 1, 10], ['charge', 2, 12]],
-    active: [6, 16], lunge: 3.4, lungeAt: [4, 16], sfx: 'heavy',
+    steps: [['charge', 0, 4], ['charge', 1, 14], ['charge', 2, 12]],
+    active: [4, 18], lunge: 3.6, lungeAt: [0, 18], sfx: 'heavy',
     hit: { box: { x: 0, z: 12, w: 26, h: 36 }, depth: D, damage: 11, stun: 30, stop: 13, push: 4.6, launch: 2.2, knockdown: true, heavy: true },
   },
-  uppercut: {
-    steps: [['uppercut', 0, 5], ['uppercut', 1, 8], ['uppercut', 2, 12]],
-    active: [5, 13], lunge: 1.2, lungeAt: [0, 10], sfx: 'heavy',
-    hit: { box: { x: 0, z: 22, w: 26, h: 34 }, depth: D, damage: 10, stun: 30, stop: 12, push: 0.8, launch: 6, knockdown: true, heavy: true },
-  },
-  sweepkick: {
-    steps: [['sweepkick', 0, 5], ['sweepkick', 1, 8], ['sweepkick', 2, 10]],
-    active: [5, 13], lunge: 0.6, lungeAt: [3, 10], sfx: 'heavy',
-    hit: { box: { x: 0, z: 0, w: 34, h: 16 }, depth: D, damage: 9, stun: 30, stop: 11, push: 1.4, launch: 2.8, knockdown: true, heavy: true },
-  },
+
+
   // ---- other hero moves ----
+  // run, jump, attack: long flying dropkick
   dropkick: {
-    steps: [['dropkick', 0, 5], ['dropkick', 1, 18], ['dropkick', 2, 12]],
-    active: [5, 23], lunge: 3.8, lungeAt: [0, 23], jump: { at: 3, vz: 2.6 }, sfx: 'heavy',
-    hit: { box: { x: 0, z: 10, w: 30, h: 26 }, depth: D, damage: 12, stun: 30, stop: 13, push: 4.2, launch: 3.6, knockdown: true, heavy: true },
+    steps: [['dropkick', 0, 4], ['dropkick', 1, 90]],
+    active: [4, 94], air: true, sfx: 'heavy',
+    hit: { box: { x: 0, z: 6, w: 34, h: 28 }, depth: D, damage: 12, stun: 30, stop: 13, push: 4.2, launch: 3.6, knockdown: true, heavy: true },
+  },
+  // neutral (vertical) jump + attack: straight knee
+  jumpknee: {
+    steps: [['jumpknee', 0, 90]],
+    active: [2, 90], air: true, sfx: 'heavy',
+    hit: { box: { x: -2, z: 2, w: 24, h: 28 }, depth: D, damage: 8, stun: 28, stop: 10, push: 1.8, launch: 2.6, knockdown: true, heavy: true },
   },
   diveelbow: {
     steps: [['diveelbow', 0, 80]],
@@ -124,10 +124,11 @@ export const MOVES: Record<string, MoveDef> = {
     active: [3, 11], lunge: 1.5, lungeAt: [0, 8], sfx: 'heavy',
     hit: { box: { x: 0, z: 20, w: 28, h: 34 }, depth: 12, damage: 9, stun: 30, stop: 14, push: 3.4, launch: 4.6, knockdown: true, heavy: true },
   },
+  // forward jump + attack: flying side kick, leg held out for the rest of the jump
   jumpkick: {
-    steps: [['jumpkick', 0, 4], ['jumpkick', 1, 60]],
-    active: [4, 64], air: true, sfx: 'heavy',
-    hit: { box: { x: 2, z: 6, w: 28, h: 22 }, depth: D, damage: 9, stun: 28, stop: 10, push: 2.4, launch: 2.8, knockdown: true, heavy: true },
+    steps: [['jumpkick', 0, 3], ['jumpkick', 1, 90]],
+    active: [3, 93], air: true, sfx: 'heavy',
+    hit: { box: { x: 2, z: 6, w: 34, h: 22 }, depth: D, damage: 9, stun: 28, stop: 10, push: 2.4, launch: 2.8, knockdown: true, heavy: true },
   },
   elbow: {
     steps: [['elbow', 0, 4], ['elbow', 1, 12]],
@@ -211,7 +212,10 @@ export const HERO = {
   walkX: 1.5,
   walkY: 0.95,
   runX: 3.1,
-  jumpVz: 5.4,
+  jumpVz: 6.3,
+  jumpGravity: 0.26, // floatier than everyone else: classic brawler jumps
+  jumpX: 2.4, // walking jump distance ~110px
+  runJumpX: 3.6, // running jump ~160px
   body: { w: 18, h: 54 },
   lives: 3,
 };

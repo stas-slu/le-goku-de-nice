@@ -4,12 +4,12 @@
 import Phaser from 'phaser';
 import type { Intent } from '../game/types';
 
-type Btn = 'attack' | 'jump' | 'special' | 'super' | 'pause' | 'confirm';
+type Btn = 'attack' | 'jump' | 'special' | 'pause' | 'confirm';
 
 export class Controls {
   private scene: Phaser.Scene;
   private keys: Record<string, Phaser.Input.Keyboard.Key> = {};
-  private prev: Record<Btn, boolean> = { attack: false, jump: false, special: false, super: false, pause: false, confirm: false };
+  private prev: Record<Btn, boolean> = { attack: false, jump: false, special: false, pause: false, confirm: false };
   private lastTap = { dir: 0, tick: -100 };
   private running = false;
   private prevMx = 0;
@@ -20,7 +20,7 @@ export class Controls {
     this.scene = scene;
     const kb = scene.input.keyboard;
     if (kb) {
-      const names = ['LEFT', 'RIGHT', 'UP', 'DOWN', 'A', 'S', 'D', 'W', 'Q', 'Z', 'P', 'ESC', 'ENTER', 'SPACE', 'M'];
+      const names = ['LEFT', 'RIGHT', 'UP', 'DOWN', 'A', 'S', 'D', 'Q', 'P', 'ESC', 'ENTER', 'SPACE', 'M'];
       for (const n of names) this.keys[n] = kb.addKey(n, true, false);
       // Latch presses ourselves: Phaser clears _justDown on key-up, so a tap
       // that starts and ends between two polls would otherwise be lost.
@@ -43,11 +43,10 @@ export class Controls {
   }
 
   private static readonly KEYS: Record<Btn, string[]> = {
-    // arrows move; actions sit on one cluster. AZERTY: Q/Z are the physical A/W.
+    // arrows move; three action buttons side by side. AZERTY: Q is the physical A.
     attack: ['A', 'Q'],
     jump: ['S', 'SPACE'],
     special: ['D'],
-    super: ['W', 'Z'],
     pause: ['ESC', 'P'],
     confirm: ['ENTER'],
   };
@@ -87,8 +86,7 @@ export class Controls {
       my,
       attack: b(2) || !!t?.attack,
       jump: b(0) || !!t?.jump,
-      special: b(1) || b(4) || !!t?.special,
-      super: b(3) || b(5) || !!t?.super,
+      special: b(1) || b(3) || b(4) || b(5) || !!t?.special,
       pause: b(9),
       confirm: b(9) || b(0),
     };
@@ -134,7 +132,7 @@ export class Controls {
     if (this.touch?.state().run) this.running = true;
     this.prevMx = h.mx;
     const e = this.edges(h);
-    return { mx: h.mx, my: h.my, run: this.running, attack: e.attack, jump: e.jump, special: e.special, super: e.super, pause: e.pause };
+    return { mx: h.mx, my: h.my, run: this.running, attack: e.attack, jump: e.jump, special: e.special, pause: e.pause };
   }
 
   muteKey(): boolean {
@@ -151,7 +149,6 @@ export interface TouchState {
   attack: boolean;
   jump: boolean;
   special: boolean;
-  super: boolean;
 }
 
 /** Virtual stick (left half) + four buttons (right side). */
@@ -171,8 +168,7 @@ export class TouchPad {
     this.buttons = [
       { key: 'attack', x: w - 30, y: h - 28, r: 16, down: false, label: 'A' },
       { key: 'jump', x: w - 66, y: h - 18, r: 14, down: false, label: 'B' },
-      { key: 'special', x: w - 62, y: h - 54, r: 12, down: false, label: 'SP' },
-      { key: 'super', x: w - 26, y: h - 66, r: 12, down: false, label: '!' },
+      { key: 'special', x: w - 50, y: h - 62, r: 13, down: false, label: 'SP' },
     ];
     this.gfx = scene.add.graphics().setScrollFactor(0).setDepth(10000);
     for (const b of this.buttons) {
@@ -191,7 +187,7 @@ export class TouchPad {
   }
 
   state(): TouchState {
-    const s: TouchState = { mx: 0, my: 0, run: false, attack: false, jump: false, special: false, super: false };
+    const s: TouchState = { mx: 0, my: 0, run: false, attack: false, jump: false, special: false };
     if (!this.enabled) return s;
     const cam = this.scene.cameras.main;
     const pointers = this.scene.input.manager.pointers.filter((p) => p.isDown);
@@ -235,7 +231,7 @@ export class TouchPad {
       g.fillStyle(0xffffff, 0.35).fillCircle(this.origin.x + Math.cos(a) * l, this.origin.y + Math.sin(a) * l, 9);
     }
     for (const b of this.buttons) {
-      g.fillStyle(b.key === 'super' ? 0xffd84a : b.key === 'attack' ? 0xe0443c : 0x2f6fc4, b.down ? 0.6 : 0.28).fillCircle(b.x, b.y, b.r);
+      g.fillStyle(b.key === 'special' ? 0xffd84a : b.key === 'attack' ? 0xe0443c : 0x2f6fc4, b.down ? 0.6 : 0.28).fillCircle(b.x, b.y, b.r);
       g.lineStyle(1, 0xffffff, 0.5).strokeCircle(b.x, b.y, b.r);
     }
   }
