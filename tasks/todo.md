@@ -27,4 +27,4 @@ Plan: ~/.claude/plans/giggly-singing-nautilus.md
 - [ ] Promenade des Anglais (pebble throwers), Vieux-Nice / Opéra, Cimiez museum
 - [ ] Paris manga boulevard, Limoges belfry timed hold, Grand Musée finale
 - [ ] Local 2-player co-op
-- [ ] Deploy (itch.io / GitHub Pages) — ask first
+- [x] Deployed to GitHub Pages: https://stas-slu.github.io/le-goku-de-nice/ (repo stas-slu/le-goku-de-nice, auto-deploys on push to main)
